@@ -2,8 +2,11 @@ import * as pdfjsLib from "pdfjs-dist";
 import type { PDFDocumentProxy, PDFPageProxy } from "pdfjs-dist";
 import type { TextItem } from "../types/pdf.types";
 
-// Le worker est servi statiquement depuis /public (voir index.html / main.tsx)
-pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+// Worker chargé depuis un CDN (aucun fichier binaire à gérer manuellement,
+// idéal pour un déploiement sans terminal local). La version doit
+// correspondre exactement à celle de pdfjs-dist dans package.json.
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://unpkg.com/pdfjs-dist@4.6.82/build/pdf.worker.min.mjs";
 
 export async function loadPdfDocument(
   data: ArrayBuffer
@@ -52,14 +55,11 @@ export async function extractTextItems(
   const items: TextItem[] = [];
 
   textContent.items.forEach((raw, index) => {
-    // Les items "marked content" (sans transform) sont ignorés
     if (!("transform" in raw) || !raw.str || !raw.str.trim()) return;
 
     const tx = pdfjsLib.Util.transform(viewport.transform, raw.transform);
     const fontSize = Math.hypot(tx[2], tx[3]);
     const x = tx[4];
-    // tx[5] est la ligne de base ; on remonte de fontSize pour obtenir le
-    // coin haut-gauche approximatif de la boîte de texte.
     const y = tx[5] - fontSize;
 
     items.push({
@@ -104,8 +104,6 @@ export function sampleBackgroundColor(
     const data = context.getImageData(px, py, 1, 1).data;
     return { r: data[0] / 255, g: data[1] / 255, b: data[2] / 255 };
   } catch {
-    // getImageData peut échouer sur canvas "tainted" (rare, PDF local donc
-    // normalement OK) — on retombe sur du blanc par défaut.
     return { r: 1, g: 1, b: 1 };
   }
 }
