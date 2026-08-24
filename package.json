@@ -11,7 +11,7 @@
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "pdfjs-dist": "^4.6.82",
+    "pdfjs-dist": "4.6.82",
     "pdf-lib": "^1.17.1",
     "lucide-react": "^0.400.0"
   },
